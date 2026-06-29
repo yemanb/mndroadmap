@@ -1,0 +1,48 @@
+{
+  "name": "MND — Le Plan",
+  "short_name": "MND Plan",
+  "description": "Tableau de bord souverain de la Maison MND — plan, tâches, agenda, messages & documents.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1E2150",
+  "theme_color": "#1E2150",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["productivity", "business"],
+  "screenshots": [
+    {
+      "src": "/screenshots/01-app-home.png",
+      "sizes": "402x874",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tableau de bord MND Le Plan"
+    }
+  ]
+}
