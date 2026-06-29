@@ -38,6 +38,22 @@
   .appscroll::-webkit-scrollbar{width:0;height:0;display:none;}
   .appscroll{scrollbar-width:none;}
   #dc-root,#dc-root>div{height:100%;}
+  /* === responsive layout === */
+  .rp-root{width:100%;min-height:100dvh;background:var(--color-ivoire);display:flex;flex-direction:column;position:relative;}
+  .rp-body{flex:1;min-height:0;display:flex;flex-direction:row;}
+  .rp-sidebar{display:none;width:220px;flex:none;border-right:1px solid var(--hairline);background:var(--color-ivoire);}
+  .rp-main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+  @media(min-width:768px){
+    .rp-body{height:100%;overflow:hidden;}
+    .rp-sidebar{display:flex;flex-direction:column;}
+    .rp-tabbar{display:none!important;}
+    .rp-hero{padding:28px 36px 26px!important;border-bottom-left-radius:0!important;border-bottom-right-radius:0!important;}
+    .rp-cards{display:grid!important;grid-template-columns:1fr 1fr;gap:14px!important;padding-left:28px!important;padding-right:28px!important;}
+    .rp-members{display:grid!important;grid-template-columns:1fr 1fr;gap:10px!important;padding-left:28px!important;padding-right:28px!important;}
+    .rp-toppad{height:0!important;}
+    .rp-chart-pad{padding-left:28px!important;padding-right:28px!important;}
+    .rp-proj-label,.rp-team-label{padding-left:28px!important;padding-right:28px!important;}
+  }
 </style>
 </helmet>
 {{ app }}
@@ -162,6 +178,35 @@ class Component extends DCLogic {
     const p={ plan:'M4 5h7v6H4zM13 5h7v4h-7zM4 13h7v6H4zM13 11h7v8h-7z', tasks:'M4 6h2v2H4zM9 7h11M4 12h2v2H4zM9 13h11M4 18h2v2H4zM9 19h11', time:'M5 4h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1zM4 9h16M8 3v3M16 3v3', messages:'M4 5h16a1 1 0 011 1v9a1 1 0 01-1 1H9l-4 4v-4H4a1 1 0 01-1-1V6a1 1 0 011-1zM8 9h8M8 12h5', docs:'M6 2h8l4 4v15a1 1 0 01-1 1H6a1 1 0 01-1-1V3a1 1 0 011-1zM13 2v5h5M8 13h8M8 17h6', team:'M9 11a3 3 0 100-6 3 3 0 000 6zM3 20a6 6 0 0112 0M17 11a3 3 0 10-1-5.8M16 14.5a6 6 0 015 5.5' };
     return h('svg',{width:23,height:23,viewBox:'0 0 24 24',fill:'none',stroke:c,strokeWidth:sw,strokeLinecap:'round',strokeLinejoin:'round'}, h('path',{d:p[name]})); }
 
+  // ---- desktop sidebar nav ----
+  sidebarNav(){ const h=this.h; const s=this.state; const u=s.user;
+    const tabs=[['plan','Plan'],['tasks','Tâches'],['time','Agenda'],['messages','Messages'],['docs','Docs']];
+    return h('div',{style:{display:'flex',flexDirection:'column',height:'100%'}},
+      h('div',{style:{padding:'28px 20px 22px',borderBottom:'1px solid var(--hairline)'}},
+        h('div',{style:{display:'flex',alignItems:'center',gap:10}},
+          h('img',{src:'assets/mono-indigo.png',alt:'MND',style:{width:26,height:26,objectFit:'contain'}}),
+          h('div',null,
+            h('div',{style:{fontWeight:600,fontSize:11,letterSpacing:'.36em',color:'var(--color-indigo)'}},'MND'),
+            h('div',{style:{fontSize:8,letterSpacing:'.22em',color:'var(--obsidian-400)',marginTop:2}},'LE PLAN')))),
+      h('nav',{style:{flex:1,padding:'18px 12px',display:'flex',flexDirection:'column',gap:2}},
+        tabs.map(([id,label])=>{ const on=s.tab===id;
+          return h('button',{key:id,onClick:()=>this.go(id,id==='tasks'?{}:{fproject:null}),
+            style:{width:'100%',display:'flex',alignItems:'center',gap:11,padding:'10px 14px',cursor:'pointer',border:'none',borderRadius:'var(--radius-sm)',
+              background:on?'var(--color-indigo)':'transparent',color:on?'var(--color-ivoire)':'var(--obsidian-500)',
+              fontFamily:'var(--font-sans)',fontSize:13,fontWeight:on?600:400,letterSpacing:'.02em'}},
+            this.icon(id,on), label); })),
+      h('div',{style:{padding:'14px 16px',borderTop:'1px solid var(--hairline)',display:'flex',alignItems:'center',gap:10}},
+        u?h('div',{style:{width:30,height:30,borderRadius:'50%',background:u.color||'var(--copper-500)',color:'#F6F1E7',display:'grid',placeItems:'center',fontSize:10,fontWeight:600,flex:'none'}},
+          u.name.split(' ').map(w=>w[0]).join('').slice(0,2)):null,
+        u?h('div',{style:{flex:1,minWidth:0}},
+          h('div',{style:{fontSize:12,fontWeight:500,color:'var(--ink)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},u.name.split(' ')[0]),
+          h('div',{style:{fontSize:10,color:'var(--obsidian-400)'}},'Connecté')):null,
+        h('button',{onClick:()=>u&&(s.tab==='plan'?this.openCreate():this.openAdd()),
+          title:s.tab==='plan'?'Nouveau projet':'Nouvelle tâche',
+          style:{width:30,height:30,borderRadius:'50%',background:'var(--accent)',color:'#fff',border:'none',fontSize:20,fontWeight:300,cursor:'pointer',display:'grid',placeItems:'center',flex:'none'}},'+')
+      )
+    ); }
+
   // ---- render ----
   renderVals(){ if(!this.state.ready) return { app: this.h('div',{style:{height:'100%',display:'grid',placeItems:'center',color:'#9AA0C4',letterSpacing:'.2em',fontSize:11}},'…') };
     this._byId=this.byId(); this._cm=this.cmap();
@@ -169,10 +214,15 @@ class Component extends DCLogic {
     if(!s.user) return { app: this.loginScreen() };
     const body = s.tab==='plan'?this.plan():s.tab==='tasks'?this.tasks():s.tab==='time'?this.timeline():s.tab==='messages'?this.messages():this.documents();
     const isChat = s.tab==='messages';
-    return { app: h('div',{style:{minHeight:'100dvh',display:'flex',flexDirection:'column',background:'var(--color-ivoire)',position:'relative',maxWidth:480,margin:'0 auto'}},
-      s.tab==='time'?null:this.motif(0.05),
-      h('div',{className:'appscroll',style:{flex:1,minHeight:0,overflowY: isChat?'hidden':'auto',overflowX:'hidden',position:'relative',zIndex:1,display:isChat?'flex':'block',flexDirection:'column'}}, body),
-      this.tabbar(),
+    return { app: h('div',{className:'rp-root'},
+      h('div',{className:'rp-body'},
+        h('div',{className:'rp-sidebar'}, this.sidebarNav()),
+        h('div',{className:'rp-main'},
+          s.tab==='time'?null:this.motif(0.05),
+          h('div',{className:'appscroll',style:{flex:1,minHeight:0,overflowY:isChat?'hidden':'auto',overflowX:'hidden',position:'relative',zIndex:1,display:isChat?'flex':'block',flexDirection:'column'}}, body),
+          this.tabbar()
+        )
+      ),
       s.sheet?this.sheet():null,
       s.addOpen?this.addSheet():null,
       s.createOpen?this.createSheet():null,
@@ -183,14 +233,14 @@ class Component extends DCLogic {
 
   motif(op){ return this.h('div',{'aria-hidden':'true',style:{position:'absolute',inset:0,zIndex:0,pointerEvents:'none',backgroundImage:'url(assets/mono-indigo.png)',backgroundRepeat:'repeat',backgroundSize:'62px 62px',opacity:op}}); }
 
-  topPad(){ return this.h('div',{style:{height:'max(16px, env(safe-area-inset-top))'}}); }
+  topPad(){ return this.h('div',{className:'rp-toppad',style:{height:'max(16px, env(safe-area-inset-top))'}}); }
 
   // ---------- PLAN (home) ----------
   plan(){ const h=this.h; const overall=this.roll('g1'); const leaves=this.leaves(); const done=leaves.filter(l=>(l.progress||0)>=100).length; const projs=this.projects();
     const open=leaves.filter(l=>(l.progress||0)<100); const ahead=open.filter(l=>this.daysTo(l.end)>=0).sort((a,b)=>this.G.dayDiff(b.end,a.end)); const upcoming=ahead[0]||open.sort((a,b)=>this.G.dayDiff(b.end,a.end))[0];
     return h('div',null,
       // hero
-      h('div',{style:{background:'var(--grad-indigo)',color:'var(--color-ivoire)',padding:'58px 22px 26px',borderBottomLeftRadius:26,borderBottomRightRadius:26,position:'relative',overflow:'hidden'}},
+      h('div',{className:'rp-hero',style:{background:'var(--grad-indigo)',color:'var(--color-ivoire)',padding:'58px 22px 26px',borderBottomLeftRadius:26,borderBottomRightRadius:26,position:'relative',overflow:'hidden'}},
         h('img',{src:'assets/mono-ivoire.png',alt:'',style:{position:'absolute',top:-26,right:-34,width:210,height:210,opacity:.07,pointerEvents:'none'}}),
         h('div',{style:{display:'flex',alignItems:'center',gap:11,marginBottom:22,position:'relative'}},
           h('img',{src:'assets/mono-ivoire.png',alt:'MND',style:{width:30,height:30,objectFit:'contain'}}),
@@ -220,10 +270,10 @@ class Component extends DCLogic {
       ),
       this.summaryChart(),
       // projects
-      h('div',{style:{padding:'22px 18px 8px',display:'flex',alignItems:'baseline',justifyContent:'space-between'}},
+      h('div',{className:'rp-proj-label',style:{padding:'22px 18px 8px',display:'flex',alignItems:'baseline',justifyContent:'space-between'}},
         h('div',{style:{fontSize:10,letterSpacing:'.24em',color:'var(--obsidian-400)'}},'PROJETS'),
         h('div',{style:{fontSize:10,letterSpacing:'.24em',color:'var(--copper-600)'}},projs.length+'')),
-      h('div',{style:{padding:'0 18px 12px',display:'flex',flexDirection:'column',gap:12}}, projs.map(p=>this.projCard(p))),
+      h('div',{className:'rp-cards',style:{padding:'0 18px 12px',display:'flex',flexDirection:'column',gap:12}}, projs.map(p=>this.projCard(p))),
       this.memberSummary()
     ); }
 
@@ -257,7 +307,7 @@ class Component extends DCLogic {
     const areaR=lineR+' L'+xs(n-1).toFixed(1)+','+(H-PB)+' L0,'+(H-PB)+' Z';
     const realNow=this.roll('g1').progress; let pn=0; leaves.forEach(l=>{ if(this.daysTo(l.end)<=0){ pn+=G.dayDiff(l.start,l.end)+1; } }); const plannedNow=Math.round(pn/total*100);
     const delta=realNow-plannedNow; const onTrack=delta>=-2;
-    return h('div',{style:{padding:'18px 18px 4px'}},
+    return h('div',{className:'rp-chart-pad',style:{padding:'18px 18px 4px'}},
       h('div',{style:{background:'#FBF8F1',border:'1px solid var(--hairline)',borderTop:'2px solid var(--accent)',borderRadius:'var(--radius-md)',padding:'15px 15px 12px',boxShadow:'var(--shadow-sm)'}},
         h('div',{style:{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:10}},
           h('div',null, h('div',{style:{fontSize:9.5,letterSpacing:'.2em',textTransform:'uppercase',color:'var(--obsidian-400)'}},'Progression'),
@@ -279,10 +329,10 @@ class Component extends DCLogic {
 
   memberSummary(){ const h=this.h; const owners=Object.values(this.OW()); const byO={}; this.leaves().filter(t=>t.owner).forEach(t=>{ (byO[t.owner]=byO[t.owner]||[]).push(t); });
     return h('div',null,
-      h('div',{style:{padding:'18px 18px 8px',display:'flex',alignItems:'baseline',justifyContent:'space-between'}},
+      h('div',{className:'rp-team-label',style:{padding:'18px 18px 8px',display:'flex',alignItems:'baseline',justifyContent:'space-between'}},
         h('div',{style:{fontSize:10,letterSpacing:'.24em',color:'var(--obsidian-400)'}},'ÉQUIPE'),
         h('div',{style:{fontSize:10,letterSpacing:'.24em',color:'var(--copper-600)'}},owners.length+'')),
-      h('div',{style:{padding:'0 18px 14px',display:'flex',flexDirection:'column',gap:9}}, owners.map(o=>{ const list=byO[o.id]||[]; const done=list.filter(t=>(t.progress||0)>=100).length;
+      h('div',{className:'rp-members',style:{padding:'0 18px 14px',display:'flex',flexDirection:'column',gap:9}}, owners.map(o=>{ const list=byO[o.id]||[]; const done=list.filter(t=>(t.progress||0)>=100).length;
         const dsum=list.reduce((a,t)=>a+this.G.dayDiff(t.start,t.end)+1,0)||1; const wp=list.reduce((a,t)=>a+(t.progress||0)*(this.G.dayDiff(t.start,t.end)+1),0); const pct=Math.round(wp/dsum);
         return h('div',{key:o.id,style:{display:'flex',alignItems:'center',gap:12,background:'#FBF8F1',border:'1px solid var(--hairline)',borderRadius:'var(--radius-md)',padding:'11px 13px',boxShadow:'var(--shadow-xs)'}},
           this.avatar(o.id,34),
@@ -656,7 +706,7 @@ class Component extends DCLogic {
   // ---------- tab bar ----------
   tabbar(){ const h=this.h; const s=this.state; const tabs=[['plan','Plan'],['tasks','Tâches'],['time','Agenda'],['messages','Messages'],['docs','Docs']];
     const onMessages=s.tab==='messages';
-    return h('div',{style:{flex:'none',position:'relative',paddingBottom:'calc(env(safe-area-inset-bottom, 0px) + 8px)',paddingTop:8,background:'rgba(251,248,241,.92)',backdropFilter:'blur(14px)',WebkitBackdropFilter:'blur(14px)',borderTop:'1px solid var(--hairline)',zIndex:5}},
+    return h('div',{className:'rp-tabbar',style:{flex:'none',position:'relative',paddingBottom:'calc(env(safe-area-inset-bottom, 0px) + 8px)',paddingTop:8,background:'rgba(251,248,241,.92)',backdropFilter:'blur(14px)',WebkitBackdropFilter:'blur(14px)',borderTop:'1px solid var(--hairline)',zIndex:5}},
       onMessages?null:h('button',{onClick:()=>{ s.tab==='plan'?this.openCreate():this.openAdd(); },title:s.tab==='plan'?'Nouveau projet':'Nouvelle tâche',style:{position:'absolute',top:-58,right:18,width:52,height:52,borderRadius:'50%',background:'var(--accent)',color:'#fff',border:'2px solid var(--color-ivoire)',boxShadow:'var(--shadow-md)',fontSize:26,fontWeight:300,lineHeight:1,cursor:'pointer',display:'grid',placeItems:'center'}},'+'),
       h('div',{style:{display:'flex'}}, tabs.map(([id,label])=>h('button',{key:id,onClick:()=>this.go(id, id==='tasks'?{}:{fproject:null}),style:{flex:1,background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'4px 0'}},
         this.icon(id,s.tab===id),
