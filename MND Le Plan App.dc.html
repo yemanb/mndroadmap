@@ -10,6 +10,13 @@
 <meta name="apple-mobile-web-app-title" content="MND Plan">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  window._sb = supabase.createClient(
+    'https://pcqampxpwjtbuijezcfr.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjcWFtcHhwd2p0YnVpamV6Y2ZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NTc5MDgsImV4cCI6MjA5ODMzMzkwOH0._5ux_5RZfiteOcb2CnLSwVtwpn_5c5M_nkfkkfGD-ro'
+  );
+</script>
 <script src="./support.js"></script>
 <script>
   if ('serviceWorker' in navigator) {
@@ -62,12 +69,19 @@
 class Component extends DCLogic {
   h = React.createElement;
 
-  state = { ready:false, user:null, tab:'plan', fstatus:'all', fproject:null, sheet:null, items:null, owners:null, addOpen:false, form:{}, tlProject:null, tlOwner:null, tlType:'all', tlStatus:'all', docs:[], docProject:null, loginForm:{email:'',pwd:''}, msgs:null, channel:'general', msgInput:'', createOpen:false, cform:null, viewDoc:null, docCreate:null, docForm:null, shareId:null, desktop: typeof window !== 'undefined' && window.innerWidth >= 768 };
+  state = { ready:false, authChecked:false, user:null, tab:'plan', fstatus:'all', fproject:null, sheet:null, items:null, owners:null, addOpen:false, form:{}, tlProject:null, tlOwner:null, tlType:'all', tlStatus:'all', docs:[], docProject:null, loginForm:{email:'',pwd:'',confirm:'',mode:'signin',error:null,loading:false}, msgs:null, channel:'general', msgInput:'', createOpen:false, cform:null, viewDoc:null, docCreate:null, docForm:null, shareId:null, desktop: typeof window !== 'undefined' && window.innerWidth >= 768 };
 
   componentDidMount(){ this._wait();
     this._onResize=()=>this.setState({desktop:window.innerWidth>=768}); window.addEventListener('resize',this._onResize);
-    try{ const u=localStorage.getItem('mnd_plan_user'); if(u) this.setState({user:JSON.parse(u)});
-      const d=localStorage.getItem('mnd_plan_docs_v2'); if(d) this._savedDocs=JSON.parse(d);
+    window._sb.auth.getSession().then(({data:{session}})=>{
+      if(session) this._setSupabaseUser(session.user);
+      this.setState({authChecked:true});
+    });
+    window._sb.auth.onAuthStateChange((event,session)=>{
+      if(event==='SIGNED_IN'&&session) this._setSupabaseUser(session.user);
+      if(event==='SIGNED_OUT') this.setState({user:null});
+    });
+    try{ const d=localStorage.getItem('mnd_plan_docs_v2'); if(d) this._savedDocs=JSON.parse(d);
       const m=localStorage.getItem('mnd_plan_msgs'); if(m) this._savedMsgs=JSON.parse(m); }catch(e){} }
   componentWillUnmount(){ if(this._onResize) window.removeEventListener('resize',this._onResize); }
   _wait(){ if(window.GANTT){ this.G=window.GANTT; this.setState({ ready:true, items: window.GANTT.ITEMS.map(o=>Object.assign({},o,{deps:(o.deps||[]).slice()})), owners: Object.assign({}, window.GANTT.OWNERS), docs: this._savedDocs || this.seedDocs(), msgs: this._savedMsgs || (window.GX?window.GX.seedMessages():{}) }); } else { setTimeout(()=>this._wait(),30); } }
@@ -120,9 +134,25 @@ class Component extends DCLogic {
     this.setState({shareId:null}); }
 
   // ---- auth ----
-  login(user){ try{ localStorage.setItem('mnd_plan_user', JSON.stringify(user)); }catch(e){} this.setState({user, tab:'plan'}); }
-  loginEmail(){ const f=this.state.loginForm; const email=(f.email||'').trim(); if(!email) return; const name=email.split('@')[0].replace(/[._-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); this.login({ id:'me', name, role:'Maison MND', color:'var(--color-indigo)', email }); }
-  logout(){ try{ localStorage.removeItem('mnd_plan_user'); }catch(e){} this.setState({user:null, tab:'plan'}); }
+  _setSupabaseUser(u){ const meta=u.user_metadata||{}; const name=meta.full_name||(u.email||'').split('@')[0].replace(/[._-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); this.setState({user:{id:u.id,name,email:u.email,role:meta.role||'Maison MND',color:meta.color||'var(--color-indigo)'}}); }
+  _authErr(msg){ const m={'Invalid login credentials':'E-mail ou mot de passe incorrect.','User already registered':'Cet e-mail est déjà utilisé.','Password should be at least 6 characters':'Le mot de passe doit faire au moins 6 caractères.','Email not confirmed':'Vérifiez votre boîte mail pour confirmer votre adresse.','signup_disabled':'Les inscriptions sont désactivées.'}; return m[msg]||msg; }
+  setLF(k,v){ this.setState(s=>({loginForm:Object.assign({},s.loginForm,{[k]:v,error:null})})); }
+  loginWithEmail(){ const f=this.state.loginForm; const email=(f.email||'').trim(); const pwd=f.pwd||''; if(!email||!pwd) return;
+    this.setState(s=>({loginForm:Object.assign({},s.loginForm,{loading:true,error:null})}));
+    window._sb.auth.signInWithPassword({email,password:pwd}).then(({error})=>{
+      if(error) this.setState(s=>({loginForm:Object.assign({},s.loginForm,{loading:false,error:this._authErr(error.message)})}));
+      else this.setState(s=>({loginForm:Object.assign({},s.loginForm,{loading:false})}));
+    }); }
+  signUpWithEmail(){ const f=this.state.loginForm; const email=(f.email||'').trim(); const pwd=f.pwd||''; const confirm=f.confirm||'';
+    if(!email||!pwd) return;
+    if(pwd!==confirm){ this.setState(s=>({loginForm:Object.assign({},s.loginForm,{error:'Les mots de passe ne correspondent pas.'})})); return; }
+    if(pwd.length<6){ this.setState(s=>({loginForm:Object.assign({},s.loginForm,{error:'Le mot de passe doit faire au moins 6 caractères.'})})); return; }
+    this.setState(s=>({loginForm:Object.assign({},s.loginForm,{loading:true,error:null})}));
+    window._sb.auth.signUp({email,password:pwd}).then(({error})=>{
+      if(error) this.setState(s=>({loginForm:Object.assign({},s.loginForm,{loading:false,error:this._authErr(error.message)})}));
+      else this.setState(s=>({loginForm:Object.assign({},s.loginForm,{loading:false,error:'Compte créé ! Vérifiez votre e-mail pour confirmer.'})}));
+    }); }
+  logout(){ window._sb.auth.signOut(); this.setState({user:null,tab:'plan'}); }
 
   // ---- messaging ----
   persistMsgs(msgs){ try{ localStorage.setItem('mnd_plan_msgs', JSON.stringify(msgs)); }catch(e){} }
@@ -212,7 +242,7 @@ class Component extends DCLogic {
     ); }
 
   // ---- render ----
-  renderVals(){ if(!this.state.ready) return { app: this.h('div',{style:{height:'100%',display:'grid',placeItems:'center',color:'#9AA0C4',letterSpacing:'.2em',fontSize:11}},'…') };
+  renderVals(){ if(!this.state.ready||!this.state.authChecked) return { app: this.h('div',{style:{height:'100%',display:'grid',placeItems:'center',color:'#9AA0C4',letterSpacing:'.2em',fontSize:11}},'…') };
     this._byId=this.byId(); this._cm=this.cmap();
     const h=this.h; const s=this.state;
     if(!s.user) return { app: this.loginScreen() };
@@ -508,33 +538,34 @@ class Component extends DCLogic {
       )); }
 
   // ---------- LOGIN ----------
-  setLF(k,v){ this.setState(s=>({loginForm:Object.assign({},s.loginForm,{[k]:v})})); }
-  loginScreen(){ const h=this.h; const owners=Object.values(this.OW()); const f=this.state.loginForm;
-    const D=this.state.desktop;
+  loginScreen(){ const h=this.h; const f=this.state.loginForm;
+    const D=this.state.desktop; const signup=f.mode==='signup';
     const inS={width:'100%',padding:'11px 13px',fontSize:13.5,fontFamily:'var(--font-sans)',color:'var(--ink)',background:'#FFFDF8',border:'1px solid var(--hairline)',borderRadius:'var(--radius-sm)',outline:'none'};
+    const submit=()=>signup?this.signUpWithEmail():this.loginWithEmail();
     return h('div',{style:{height:'100%',position:'relative',background:'var(--color-ivoire)',display:'flex',flexDirection:'column',overflow:'hidden'}},
       this.motif(0.06),
-      h('div',{className:'appscroll',style:{position:'relative',zIndex:1,flex:1,overflowY:'auto',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:D?'32px 20px 40px':'72px 28px 40px'}},
-        h('div',{style:{width:'100%',maxWidth:400}},
-          h('div',{style:{textAlign:'center',marginBottom:D?24:30}},
-            h('img',{src:'assets/mono-indigo.png',alt:'MND',style:{width:D?44:62,height:D?44:62,objectFit:'contain',marginBottom:D?10:14}}),
-            h('div',{style:{fontWeight:600,fontSize:D?12:15,letterSpacing:'.36em',color:'var(--color-indigo)'}},'MND'),
-            h('div',{style:{fontSize:D?7.5:9,letterSpacing:'.3em',color:'var(--copper-600)',marginTop:5}},'LE PLAN'),
-            h('div',{style:{fontFamily:'var(--font-serif)',fontSize:D?21:25,fontWeight:300,lineHeight:1.2,marginTop:D?14:18,color:'var(--ink)'}},'Bienvenue à la maison'),
-            h('div',{style:{fontSize:11.5,color:'var(--obsidian-400)',marginTop:5,lineHeight:1.5}},'Connectez-vous pour suivre le plan souverain.')),
-          h('div',{style:{display:'flex',flexDirection:'column',gap:9,marginBottom:16}},
-            h('input',{type:'email',value:f.email,placeholder:'Adresse e-mail',onChange:e=>this.setLF('email',e.target.value),onKeyDown:e=>{if(e.key==='Enter')this.loginEmail();},style:inS}),
-            h('input',{type:'password',value:f.pwd,placeholder:'Mot de passe',onChange:e=>this.setLF('pwd',e.target.value),onKeyDown:e=>{if(e.key==='Enter')this.loginEmail();},style:inS}),
-            h('button',{onClick:()=>this.loginEmail(),style:{marginTop:2,padding:'12px',fontSize:11,letterSpacing:'.14em',textTransform:'uppercase',fontWeight:600,cursor:'pointer',background:'var(--color-indigo)',color:'var(--color-ivoire)',border:'none',borderRadius:'var(--radius-sm)'}},'Se connecter')),
-          h('div',{style:{display:'flex',alignItems:'center',gap:10,margin:'6px 0 14px'}},
-            h('div',{style:{flex:1,height:1,background:'var(--hairline)'}}),
-            h('div',{style:{fontSize:9,letterSpacing:'.2em',color:'var(--obsidian-300)',textTransform:'uppercase',whiteSpace:'nowrap'}},'Ou un membre'),
-            h('div',{style:{flex:1,height:1,background:'var(--hairline)'}})),
-          h('div',{style:{display:'flex',flexDirection:'column',gap:6}}, owners.map(o=>h('button',{key:o.id,onClick:()=>this.login(o),style:{display:'flex',alignItems:'center',gap:11,padding:'9px 11px',cursor:'pointer',background:'#FFFDF8',border:'1px solid var(--hairline)',borderRadius:'var(--radius-md)',textAlign:'left',width:'100%'}},
-            this.avatar(o.id,30),
-            h('div',{style:{flex:1}}, h('div',{style:{fontSize:13,fontWeight:500,color:'var(--ink)'}},o.name), h('div',{style:{fontSize:9.5,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--obsidian-300)',marginTop:2}},o.role)),
-            h('span',{style:{fontSize:14,color:'var(--copper-400)'}},'›')))),
-          h('div',{style:{textAlign:'center',marginTop:22,fontFamily:'var(--font-serif)',fontStyle:'italic',fontSize:13,color:'var(--obsidian-300)'}},'mi nyɔ́ ɖɛkpɛ')
+      h('div',{className:'appscroll',style:{position:'relative',zIndex:1,flex:1,overflowY:'auto',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:D?'32px 20px 40px':'60px 28px 40px'}},
+        h('div',{style:{width:'100%',maxWidth:380}},
+          h('div',{style:{textAlign:'center',marginBottom:26}},
+            h('img',{src:'assets/mono-indigo.png',alt:'MND',style:{width:D?40:52,height:D?40:52,objectFit:'contain',marginBottom:10}}),
+            h('div',{style:{fontWeight:700,fontSize:11,letterSpacing:'.38em',color:'var(--color-indigo)'}},'MND'),
+            h('div',{style:{fontSize:7.5,letterSpacing:'.28em',color:'var(--copper-600)',marginTop:4}},'LE PLAN'),
+            h('div',{style:{fontFamily:'var(--font-serif)',fontSize:D?20:22,fontWeight:300,lineHeight:1.2,marginTop:16,color:'var(--ink)'}},'Bienvenue à la maison'),
+            h('div',{style:{fontSize:11,color:'var(--obsidian-400)',marginTop:5,lineHeight:1.5}},signup?'Créez votre compte pour accéder à la plateforme.':'Connectez-vous pour suivre le plan souverain.')),
+          h('div',{style:{display:'flex',background:'var(--color-sable)',borderRadius:'var(--radius-sm)',padding:2,marginBottom:20}},
+            ['signin','signup'].map(m=>h('button',{key:m,onClick:()=>this.setState(s=>({loginForm:Object.assign({},s.loginForm,{mode:m,error:null})})),
+              style:{flex:1,padding:'8px',fontSize:11,fontWeight:f.mode===m?600:400,letterSpacing:'.06em',cursor:'pointer',border:'none',borderRadius:5,
+                background:f.mode===m?'var(--color-ivoire)':'transparent',
+                color:f.mode===m?'var(--color-indigo)':'var(--obsidian-400)',
+                boxShadow:f.mode===m?'0 1px 3px rgba(0,0,0,.08)':'none'}},
+              m==='signin'?'Se connecter':'Créer un compte'))),
+          h('div',{style:{display:'flex',flexDirection:'column',gap:9,marginBottom:f.error?12:16}},
+            h('input',{type:'email',value:f.email,placeholder:'Adresse e-mail',autoComplete:'email',onChange:e=>this.setLF('email',e.target.value),onKeyDown:e=>{if(e.key==='Enter')submit();},style:inS}),
+            h('input',{type:'password',value:f.pwd,placeholder:'Mot de passe',autoComplete:signup?'new-password':'current-password',onChange:e=>this.setLF('pwd',e.target.value),onKeyDown:e=>{if(e.key==='Enter')submit();},style:inS}),
+            signup?h('input',{type:'password',value:f.confirm,placeholder:'Confirmer le mot de passe',autoComplete:'new-password',onChange:e=>this.setLF('confirm',e.target.value),onKeyDown:e=>{if(e.key==='Enter')submit();},style:inS}):null),
+          f.error?h('div',{style:{fontSize:11.5,color:f.error.includes('créé')||f.error.includes('Vérifiez')?'var(--copper-700)':'#c0392b',background:f.error.includes('créé')||f.error.includes('Vérifiez')?'var(--copper-50)':'#fdf2f2',border:'1px solid '+(f.error.includes('créé')||f.error.includes('Vérifiez')?'var(--copper-200)':'#f5c6cb'),borderRadius:'var(--radius-sm)',padding:'9px 12px',marginBottom:12,lineHeight:1.4}},f.error):null,
+          h('button',{onClick:submit,disabled:f.loading,style:{width:'100%',padding:'12px',fontSize:11,letterSpacing:'.14em',textTransform:'uppercase',fontWeight:600,cursor:f.loading?'default':'pointer',background:f.loading?'var(--obsidian-300)':'var(--color-indigo)',color:'var(--color-ivoire)',border:'none',borderRadius:'var(--radius-sm)'}},f.loading?'…':signup?'Créer mon compte':'Se connecter'),
+          h('div',{style:{textAlign:'center',marginTop:28,fontFamily:'var(--font-serif)',fontStyle:'italic',fontSize:12,color:'var(--obsidian-300)'}},'mi nyɔ́ ɖɛkpɛ')
         )
       )); }
 
