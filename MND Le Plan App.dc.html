@@ -510,29 +510,32 @@ class Component extends DCLogic {
   // ---------- LOGIN ----------
   setLF(k,v){ this.setState(s=>({loginForm:Object.assign({},s.loginForm,{[k]:v})})); }
   loginScreen(){ const h=this.h; const owners=Object.values(this.OW()); const f=this.state.loginForm;
-    const inS={width:'100%',padding:'13px 14px',fontSize:14,fontFamily:'var(--font-sans)',color:'var(--ink)',background:'#FFFDF8',border:'1px solid var(--hairline)',borderRadius:'var(--radius-sm)',outline:'none'};
+    const D=this.state.desktop;
+    const inS={width:'100%',padding:'11px 13px',fontSize:13.5,fontFamily:'var(--font-sans)',color:'var(--ink)',background:'#FFFDF8',border:'1px solid var(--hairline)',borderRadius:'var(--radius-sm)',outline:'none'};
     return h('div',{style:{height:'100%',position:'relative',background:'var(--color-ivoire)',display:'flex',flexDirection:'column',overflow:'hidden'}},
       this.motif(0.06),
-      h('div',{className:'appscroll',style:{position:'relative',zIndex:1,flex:1,overflowY:'auto',display:'flex',flexDirection:'column',justifyContent:'center',padding:'72px 28px 40px'}},
-        h('div',{style:{textAlign:'center',marginBottom:30}},
-          h('img',{src:'assets/mono-indigo.png',alt:'MND',style:{width:62,height:62,objectFit:'contain',marginBottom:14}}),
-          h('div',{style:{fontWeight:600,fontSize:15,letterSpacing:'.36em',color:'var(--color-indigo)'}},'MND'),
-          h('div',{style:{fontSize:9,letterSpacing:'.3em',color:'var(--copper-600)',marginTop:7}},'LE PLAN'),
-          h('div',{style:{fontFamily:'var(--font-serif)',fontSize:25,fontWeight:300,lineHeight:1.2,marginTop:18,color:'var(--ink)'}},'Bienvenue à la maison'),
-          h('div',{style:{fontSize:12,color:'var(--obsidian-400)',marginTop:6,lineHeight:1.5}},'Connectez-vous pour suivre le plan souverain.')),
-        h('div',{style:{display:'flex',flexDirection:'column',gap:11,marginBottom:18}},
-          h('input',{type:'email',value:f.email,placeholder:'Adresse e-mail',onChange:e=>this.setLF('email',e.target.value),onKeyDown:e=>{if(e.key==='Enter')this.loginEmail();},style:inS}),
-          h('input',{type:'password',value:f.pwd,placeholder:'Mot de passe',onChange:e=>this.setLF('pwd',e.target.value),onKeyDown:e=>{if(e.key==='Enter')this.loginEmail();},style:inS}),
-          h('button',{onClick:()=>this.loginEmail(),style:{marginTop:4,padding:'14px',fontSize:12,letterSpacing:'.14em',textTransform:'uppercase',fontWeight:600,cursor:'pointer',background:'var(--color-indigo)',color:'var(--color-ivoire)',border:'none',borderRadius:'var(--radius-sm)'}},'Se connecter')),
-        h('div',{style:{display:'flex',alignItems:'center',gap:12,margin:'8px 0 16px'}},
-          h('div',{style:{flex:1,height:1,background:'var(--hairline)'}}),
-          h('div',{style:{fontSize:9.5,letterSpacing:'.2em',color:'var(--obsidian-300)',textTransform:'uppercase'}},'Ou un membre'),
-          h('div',{style:{flex:1,height:1,background:'var(--hairline)'}})),
-        h('div',{style:{display:'flex',flexDirection:'column',gap:8}}, owners.map(o=>h('button',{key:o.id,onClick:()=>this.login(o),style:{display:'flex',alignItems:'center',gap:12,padding:'10px 12px',cursor:'pointer',background:'#FFFDF8',border:'1px solid var(--hairline)',borderRadius:'var(--radius-md)',textAlign:'left'}},
-          this.avatar(o.id,34),
-          h('div',{style:{flex:1}}, h('div',{style:{fontSize:14,fontWeight:500,color:'var(--ink)'}},o.name), h('div',{style:{fontSize:10,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--obsidian-300)',marginTop:2}},o.role)),
-          h('span',{style:{fontSize:16,color:'var(--copper-500)'}},'›')))),
-        h('div',{style:{textAlign:'center',marginTop:26,fontFamily:'var(--font-serif)',fontStyle:'italic',fontSize:14,color:'var(--obsidian-300)'}},'mi nyɔ́ ɖɛkpɛ')
+      h('div',{className:'appscroll',style:{position:'relative',zIndex:1,flex:1,overflowY:'auto',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:D?'32px 20px 40px':'72px 28px 40px'}},
+        h('div',{style:{width:'100%',maxWidth:400}},
+          h('div',{style:{textAlign:'center',marginBottom:D?24:30}},
+            h('img',{src:'assets/mono-indigo.png',alt:'MND',style:{width:D?44:62,height:D?44:62,objectFit:'contain',marginBottom:D?10:14}}),
+            h('div',{style:{fontWeight:600,fontSize:D?12:15,letterSpacing:'.36em',color:'var(--color-indigo)'}},'MND'),
+            h('div',{style:{fontSize:D?7.5:9,letterSpacing:'.3em',color:'var(--copper-600)',marginTop:5}},'LE PLAN'),
+            h('div',{style:{fontFamily:'var(--font-serif)',fontSize:D?21:25,fontWeight:300,lineHeight:1.2,marginTop:D?14:18,color:'var(--ink)'}},'Bienvenue à la maison'),
+            h('div',{style:{fontSize:11.5,color:'var(--obsidian-400)',marginTop:5,lineHeight:1.5}},'Connectez-vous pour suivre le plan souverain.')),
+          h('div',{style:{display:'flex',flexDirection:'column',gap:9,marginBottom:16}},
+            h('input',{type:'email',value:f.email,placeholder:'Adresse e-mail',onChange:e=>this.setLF('email',e.target.value),onKeyDown:e=>{if(e.key==='Enter')this.loginEmail();},style:inS}),
+            h('input',{type:'password',value:f.pwd,placeholder:'Mot de passe',onChange:e=>this.setLF('pwd',e.target.value),onKeyDown:e=>{if(e.key==='Enter')this.loginEmail();},style:inS}),
+            h('button',{onClick:()=>this.loginEmail(),style:{marginTop:2,padding:'12px',fontSize:11,letterSpacing:'.14em',textTransform:'uppercase',fontWeight:600,cursor:'pointer',background:'var(--color-indigo)',color:'var(--color-ivoire)',border:'none',borderRadius:'var(--radius-sm)'}},'Se connecter')),
+          h('div',{style:{display:'flex',alignItems:'center',gap:10,margin:'6px 0 14px'}},
+            h('div',{style:{flex:1,height:1,background:'var(--hairline)'}}),
+            h('div',{style:{fontSize:9,letterSpacing:'.2em',color:'var(--obsidian-300)',textTransform:'uppercase',whiteSpace:'nowrap'}},'Ou un membre'),
+            h('div',{style:{flex:1,height:1,background:'var(--hairline)'}})),
+          h('div',{style:{display:'flex',flexDirection:'column',gap:6}}, owners.map(o=>h('button',{key:o.id,onClick:()=>this.login(o),style:{display:'flex',alignItems:'center',gap:11,padding:'9px 11px',cursor:'pointer',background:'#FFFDF8',border:'1px solid var(--hairline)',borderRadius:'var(--radius-md)',textAlign:'left',width:'100%'}},
+            this.avatar(o.id,30),
+            h('div',{style:{flex:1}}, h('div',{style:{fontSize:13,fontWeight:500,color:'var(--ink)'}},o.name), h('div',{style:{fontSize:9.5,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--obsidian-300)',marginTop:2}},o.role)),
+            h('span',{style:{fontSize:14,color:'var(--copper-400)'}},'›')))),
+          h('div',{style:{textAlign:'center',marginTop:22,fontFamily:'var(--font-serif)',fontStyle:'italic',fontSize:13,color:'var(--obsidian-300)'}},'mi nyɔ́ ɖɛkpɛ')
+        )
       )); }
 
   // ---------- DOCUMENTS ----------
