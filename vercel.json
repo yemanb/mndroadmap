@@ -1,4 +1,7 @@
 {
+  "github": {
+    "enabled": false
+  },
   "rewrites": [
     { "source": "/", "destination": "/MND Le Plan App.dc.html" }
   ]
