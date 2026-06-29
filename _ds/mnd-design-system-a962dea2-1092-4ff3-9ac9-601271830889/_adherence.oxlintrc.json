@@ -1,0 +1,441 @@
+{
+  "plugins": [
+    "react",
+    "import"
+  ],
+  "rules": {
+    "react/forbid-elements": [
+      "warn",
+      {
+        "forbid": []
+      }
+    ],
+    "no-restricted-imports": [
+      "warn",
+      {
+        "patterns": [
+          {
+            "group": [
+              "components/core/**",
+              "ui_kits/app/**",
+              "ui_kits/crm/**",
+              "ui_kits/deck/**",
+              "ui_kits/erp/**",
+              "ui_kits/lokaa/**",
+              "ui_kits/quiz/**",
+              "ui_kits/social/**",
+              "ui_kits/web/**"
+            ],
+            "message": "Import design-system components from 'index.js', not component internals."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+        "message": "Raw hex color — use a design-system color token via var()."
+      },
+      {
+        "selector": "Literal[value=/\\b\\d+px\\b/]",
+        "message": "Raw px value — use a design-system spacing token via var()."
+      },
+      {
+        "selector": "Literal[value=/font-family\\s*:\\s*(?!['\\\"]?(?:Cormorant Garamond|Jost))/i]",
+        "message": "Font not provided by the design system. Available: Cormorant Garamond, Jost."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Badge'] > JSXAttribute > JSXIdentifier[name!=/^(?:children|tone|shape|size|key|ref|className|style|children)$/]",
+        "message": "<Badge> doesn't accept that prop. Declared props: children, tone, shape, size."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Badge'] > JSXAttribute[name.name='tone'] > Literal[value!=/^(?:indigo|copper|obsidian|solid|outline)$/]",
+        "message": "<Badge> tone must be one of 'indigo' | 'copper' | 'obsidian' | 'solid' | 'outline'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Badge'] > JSXAttribute[name.name='shape'] > Literal[value!=/^(?:pill|square)$/]",
+        "message": "<Badge> shape must be one of 'pill' | 'square'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Badge'] > JSXAttribute[name.name='size'] > Literal[value!=/^(?:sm|md)$/]",
+        "message": "<Badge> size must be one of 'sm' | 'md'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute > JSXIdentifier[name!=/^(?:variant|size|iconLeft|iconRight|fullWidth|disabled|children|key|ref|className|style|children)$/]",
+        "message": "<Button> doesn't accept that prop. Declared props: variant, size, iconLeft, iconRight, fullWidth, disabled, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='variant'] > Literal[value!=/^(?:primary|secondary|ghost|copper)$/]",
+        "message": "<Button> variant must be one of 'primary' | 'secondary' | 'ghost' | 'copper'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='size'] > Literal[value!=/^(?:sm|md|lg)$/]",
+        "message": "<Button> size must be one of 'sm' | 'md' | 'lg'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Card'] > JSXAttribute > JSXIdentifier[name!=/^(?:children|surface|topFilet|hairline|padding|elevation|hover|key|ref|className|style|children)$/]",
+        "message": "<Card> doesn't accept that prop. Declared props: children, surface, topFilet, hairline, padding, elevation, hover."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Card'] > JSXAttribute[name.name='surface'] > Literal[value!=/^(?:paper|deep|obsidian|sable)$/]",
+        "message": "<Card> surface must be one of 'paper' | 'deep' | 'obsidian' | 'sable'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Card'] > JSXAttribute[name.name='elevation'] > Literal[value!=/^(?:none|xs|sm|md|lg)$/]",
+        "message": "<Card> elevation must be one of 'none' | 'xs' | 'sm' | 'md' | 'lg'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Eyebrow'] > JSXAttribute > JSXIdentifier[name!=/^(?:children|color|withRule|align|key|ref|className|style|children)$/]",
+        "message": "<Eyebrow> doesn't accept that prop. Declared props: children, color, withRule, align."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Eyebrow'] > JSXAttribute[name.name='align'] > Literal[value!=/^(?:left|center)$/]",
+        "message": "<Eyebrow> align must be one of 'left' | 'center'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Filet'] > JSXAttribute > JSXIdentifier[name!=/^(?:variant|orientation|ornament|length|color|key|ref|className|style|children)$/]",
+        "message": "<Filet> doesn't accept that prop. Declared props: variant, orientation, ornament, length, color."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Filet'] > JSXAttribute[name.name='variant'] > Literal[value!=/^(?:copper|indigo)$/]",
+        "message": "<Filet> variant must be one of 'copper' | 'indigo'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Filet'] > JSXAttribute[name.name='orientation'] > Literal[value!=/^(?:horizontal|vertical)$/]",
+        "message": "<Filet> orientation must be one of 'horizontal' | 'vertical'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Input'] > JSXAttribute > JSXIdentifier[name!=/^(?:label|hint|invert|key|ref|className|style|children)$/]",
+        "message": "<Input> doesn't accept that prop. Declared props: label, hint, invert."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Seal'] > JSXAttribute > JSXIdentifier[name!=/^(?:src|alt|size|tone|ring|key|ref|className|style|children)$/]",
+        "message": "<Seal> doesn't accept that prop. Declared props: src, alt, size, tone, ring."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Stars'] > JSXAttribute > JSXIdentifier[name!=/^(?:value|max|size|color|gap|key|ref|className|style|children)$/]",
+        "message": "<Stars> doesn't accept that prop. Declared props: value, max, size, color, gap."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Stat'] > JSXAttribute > JSXIdentifier[name!=/^(?:value|label|sub|align|invert|withRule|key|ref|className|style|children)$/]",
+        "message": "<Stat> doesn't accept that prop. Declared props: value, label, sub, align, invert, withRule."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Stat'] > JSXAttribute[name.name='align'] > Literal[value!=/^(?:left|center)$/]",
+        "message": "<Stat> align must be one of 'left' | 'center'."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/index.js"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "x-omelette": {
+    "components": {
+      "Badge": {
+        "replaces": []
+      },
+      "Button": {
+        "replaces": []
+      },
+      "Card": {
+        "replaces": []
+      },
+      "Eyebrow": {
+        "replaces": []
+      },
+      "Filet": {
+        "replaces": []
+      },
+      "Input": {
+        "replaces": []
+      },
+      "Seal": {
+        "replaces": []
+      },
+      "Stars": {
+        "replaces": []
+      },
+      "Stat": {
+        "replaces": []
+      }
+    },
+    "tokens": [
+      "--accent",
+      "--accent-strong",
+      "--color-argile",
+      "--color-copper",
+      "--color-indigo",
+      "--color-indigo-deep",
+      "--color-ivoire",
+      "--color-obsidian",
+      "--color-sable",
+      "--container-max",
+      "--container-narrow",
+      "--container-text",
+      "--container-wide",
+      "--copper-100",
+      "--copper-200",
+      "--copper-300",
+      "--copper-400",
+      "--copper-50",
+      "--copper-500",
+      "--copper-600",
+      "--copper-700",
+      "--copper-800",
+      "--copper-900",
+      "--dur-base",
+      "--dur-fast",
+      "--dur-slow",
+      "--ease-inout",
+      "--ease-soft",
+      "--filet-copper",
+      "--filet-indigo",
+      "--focus-ring",
+      "--font-sans",
+      "--font-serif",
+      "--grad-indigo",
+      "--grad-obsidian",
+      "--hairline",
+      "--hairline-invert",
+      "--hover-veil",
+      "--indigo-100",
+      "--indigo-200",
+      "--indigo-300",
+      "--indigo-400",
+      "--indigo-50",
+      "--indigo-500",
+      "--indigo-600",
+      "--indigo-700",
+      "--indigo-800",
+      "--indigo-900",
+      "--ink",
+      "--ink-invert",
+      "--ink-invert-soft",
+      "--ink-soft",
+      "--lh-body",
+      "--lh-display",
+      "--lh-loose",
+      "--lh-snug",
+      "--lh-tight",
+      "--logo-clearspace",
+      "--obsidian-100",
+      "--obsidian-200",
+      "--obsidian-300",
+      "--obsidian-400",
+      "--obsidian-50",
+      "--obsidian-500",
+      "--obsidian-600",
+      "--obsidian-700",
+      "--obsidian-800",
+      "--obsidian-900",
+      "--paper",
+      "--paper-2",
+      "--paper-3",
+      "--pattern-arcade",
+      "--pattern-rosette",
+      "--pattern-tresse",
+      "--press-veil",
+      "--radius-0",
+      "--radius-md",
+      "--radius-pill",
+      "--radius-sm",
+      "--rule-copper",
+      "--rule-indigo",
+      "--rule-w-thick",
+      "--rule-w-thin",
+      "--shadow-indigo",
+      "--shadow-lg",
+      "--shadow-md",
+      "--shadow-sm",
+      "--shadow-xl",
+      "--shadow-xs",
+      "--space-0",
+      "--space-1",
+      "--space-10",
+      "--space-2",
+      "--space-3",
+      "--space-4",
+      "--space-5",
+      "--space-6",
+      "--space-7",
+      "--space-8",
+      "--space-9",
+      "--structure",
+      "--structure-deep",
+      "--surface-card",
+      "--surface-deep",
+      "--surface-obsidian",
+      "--text-body",
+      "--text-display",
+      "--text-h1",
+      "--text-h2",
+      "--text-h3",
+      "--text-label",
+      "--text-lead",
+      "--text-micro",
+      "--text-quote",
+      "--text-small",
+      "--tracking-display",
+      "--tracking-kicker",
+      "--tracking-label",
+      "--tracking-mono",
+      "--tracking-normal",
+      "--transition-base",
+      "--veil-bottom",
+      "--veil-top",
+      "--weight-light",
+      "--weight-medium",
+      "--weight-regular",
+      "--weight-semibold",
+      "--z-base",
+      "--z-modal",
+      "--z-overlay",
+      "--z-sticky"
+    ],
+    "tokenKinds": {
+      "--color-indigo": "color",
+      "--color-indigo-deep": "color",
+      "--color-copper": "color",
+      "--color-obsidian": "color",
+      "--color-ivoire": "color",
+      "--color-sable": "color",
+      "--color-argile": "color",
+      "--indigo-50": "color",
+      "--indigo-100": "color",
+      "--indigo-200": "color",
+      "--indigo-300": "color",
+      "--indigo-400": "color",
+      "--indigo-500": "color",
+      "--indigo-600": "color",
+      "--indigo-700": "color",
+      "--indigo-800": "color",
+      "--indigo-900": "color",
+      "--copper-50": "color",
+      "--copper-100": "color",
+      "--copper-200": "color",
+      "--copper-300": "color",
+      "--copper-400": "color",
+      "--copper-500": "color",
+      "--copper-600": "color",
+      "--copper-700": "color",
+      "--copper-800": "color",
+      "--copper-900": "color",
+      "--obsidian-50": "color",
+      "--obsidian-100": "color",
+      "--obsidian-200": "color",
+      "--obsidian-300": "color",
+      "--obsidian-400": "color",
+      "--obsidian-500": "color",
+      "--obsidian-600": "color",
+      "--obsidian-700": "color",
+      "--obsidian-800": "color",
+      "--obsidian-900": "color",
+      "--paper": "color",
+      "--paper-2": "color",
+      "--paper-3": "color",
+      "--ink": "color",
+      "--ink-soft": "color",
+      "--ink-invert": "color",
+      "--ink-invert-soft": "color",
+      "--accent": "color",
+      "--accent-strong": "color",
+      "--structure": "color",
+      "--structure-deep": "color",
+      "--surface-card": "color",
+      "--surface-deep": "color",
+      "--surface-obsidian": "color",
+      "--rule-copper": "color",
+      "--rule-indigo": "color",
+      "--hairline": "color",
+      "--hairline-invert": "color",
+      "--hover-veil": "color",
+      "--press-veil": "color",
+      "--focus-ring": "color",
+      "--font-serif": "font",
+      "--font-sans": "font",
+      "--text-display": "font",
+      "--text-h1": "font",
+      "--text-h2": "font",
+      "--text-h3": "font",
+      "--text-quote": "font",
+      "--text-lead": "font",
+      "--text-body": "font",
+      "--text-small": "font",
+      "--text-label": "font",
+      "--text-micro": "font",
+      "--weight-light": "font",
+      "--weight-regular": "font",
+      "--weight-medium": "font",
+      "--weight-semibold": "font",
+      "--lh-display": "other",
+      "--lh-tight": "other",
+      "--lh-snug": "other",
+      "--lh-body": "other",
+      "--lh-loose": "other",
+      "--tracking-display": "font",
+      "--tracking-normal": "font",
+      "--tracking-label": "font",
+      "--tracking-kicker": "font",
+      "--tracking-mono": "font",
+      "--space-0": "spacing",
+      "--space-1": "spacing",
+      "--space-2": "spacing",
+      "--space-3": "spacing",
+      "--space-4": "spacing",
+      "--space-5": "spacing",
+      "--space-6": "spacing",
+      "--space-7": "spacing",
+      "--space-8": "spacing",
+      "--space-9": "spacing",
+      "--space-10": "spacing",
+      "--radius-0": "radius",
+      "--radius-sm": "radius",
+      "--radius-md": "radius",
+      "--radius-pill": "radius",
+      "--rule-w-thin": "spacing",
+      "--rule-w-thick": "spacing",
+      "--container-narrow": "spacing",
+      "--container-text": "font",
+      "--container-wide": "spacing",
+      "--container-max": "spacing",
+      "--logo-clearspace": "color",
+      "--z-base": "other",
+      "--z-sticky": "other",
+      "--z-overlay": "other",
+      "--z-modal": "other",
+      "--shadow-xs": "shadow",
+      "--shadow-sm": "shadow",
+      "--shadow-md": "shadow",
+      "--shadow-lg": "shadow",
+      "--shadow-xl": "shadow",
+      "--shadow-indigo": "shadow",
+      "--filet-copper": "color",
+      "--filet-indigo": "color",
+      "--veil-bottom": "other",
+      "--veil-top": "other",
+      "--grad-indigo": "other",
+      "--grad-obsidian": "other",
+      "--pattern-rosette": "other",
+      "--pattern-arcade": "other",
+      "--pattern-tresse": "other",
+      "--ease-soft": "other",
+      "--ease-inout": "other",
+      "--dur-fast": "other",
+      "--dur-base": "other",
+      "--dur-slow": "other",
+      "--transition-base": "other"
+    },
+    "fontFamilies": [
+      "Cormorant Garamond",
+      "Jost"
+    ]
+  }
+}
