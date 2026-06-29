@@ -62,12 +62,14 @@
 class Component extends DCLogic {
   h = React.createElement;
 
-  state = { ready:false, user:null, tab:'plan', fstatus:'all', fproject:null, sheet:null, items:null, owners:null, addOpen:false, form:{}, tlProject:null, tlOwner:null, tlType:'all', tlStatus:'all', docs:[], docProject:null, loginForm:{email:'',pwd:''}, msgs:null, channel:'general', msgInput:'', createOpen:false, cform:null, viewDoc:null, docCreate:null, docForm:null, shareId:null };
+  state = { ready:false, user:null, tab:'plan', fstatus:'all', fproject:null, sheet:null, items:null, owners:null, addOpen:false, form:{}, tlProject:null, tlOwner:null, tlType:'all', tlStatus:'all', docs:[], docProject:null, loginForm:{email:'',pwd:''}, msgs:null, channel:'general', msgInput:'', createOpen:false, cform:null, viewDoc:null, docCreate:null, docForm:null, shareId:null, desktop: typeof window !== 'undefined' && window.innerWidth >= 768 };
 
   componentDidMount(){ this._wait();
+    this._onResize=()=>this.setState({desktop:window.innerWidth>=768}); window.addEventListener('resize',this._onResize);
     try{ const u=localStorage.getItem('mnd_plan_user'); if(u) this.setState({user:JSON.parse(u)});
       const d=localStorage.getItem('mnd_plan_docs_v2'); if(d) this._savedDocs=JSON.parse(d);
       const m=localStorage.getItem('mnd_plan_msgs'); if(m) this._savedMsgs=JSON.parse(m); }catch(e){} }
+  componentWillUnmount(){ if(this._onResize) window.removeEventListener('resize',this._onResize); }
   _wait(){ if(window.GANTT){ this.G=window.GANTT; this.setState({ ready:true, items: window.GANTT.ITEMS.map(o=>Object.assign({},o,{deps:(o.deps||[]).slice()})), owners: Object.assign({}, window.GANTT.OWNERS), docs: this._savedDocs || this.seedDocs(), msgs: this._savedMsgs || (window.GX?window.GX.seedMessages():{}) }); } else { setTimeout(()=>this._wait(),30); } }
 
   seedDocs(){ return [
@@ -181,29 +183,31 @@ class Component extends DCLogic {
   // ---- desktop sidebar nav ----
   sidebarNav(){ const h=this.h; const s=this.state; const u=s.user;
     const tabs=[['plan','Plan'],['tasks','Tâches'],['time','Agenda'],['messages','Messages'],['docs','Docs']];
+    const ico=(name,on)=>{ const c=on?'var(--color-ivoire)':'var(--obsidian-400)'; const sw=1.6;
+      const p={ plan:'M4 5h7v6H4zM13 5h7v4h-7zM4 13h7v6H4zM13 11h7v8h-7z', tasks:'M4 6h2v2H4zM9 7h11M4 12h2v2H4zM9 13h11M4 18h2v2H4zM9 19h11', time:'M5 4h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1zM4 9h16M8 3v3M16 3v3', messages:'M4 5h16a1 1 0 011 1v9a1 1 0 01-1 1H9l-4 4v-4H4a1 1 0 01-1-1V6a1 1 0 011-1zM8 9h8M8 12h5', docs:'M6 2h8l4 4v15a1 1 0 01-1 1H6a1 1 0 01-1-1V3a1 1 0 011-1zM13 2v5h5M8 13h8M8 17h6' };
+      return h('svg',{width:16,height:16,viewBox:'0 0 24 24',fill:'none',stroke:c,strokeWidth:sw,strokeLinecap:'round',strokeLinejoin:'round'},h('path',{d:p[name]})); };
     return h('div',{style:{display:'flex',flexDirection:'column',height:'100%'}},
-      h('div',{style:{padding:'28px 20px 22px',borderBottom:'1px solid var(--hairline)'}},
-        h('div',{style:{display:'flex',alignItems:'center',gap:10}},
-          h('img',{src:'assets/mono-indigo.png',alt:'MND',style:{width:26,height:26,objectFit:'contain'}}),
-          h('div',null,
-            h('div',{style:{fontWeight:600,fontSize:11,letterSpacing:'.36em',color:'var(--color-indigo)'}},'MND'),
-            h('div',{style:{fontSize:8,letterSpacing:'.22em',color:'var(--obsidian-400)',marginTop:2}},'LE PLAN')))),
-      h('nav',{style:{flex:1,padding:'18px 12px',display:'flex',flexDirection:'column',gap:2}},
+      h('div',{style:{padding:'18px 16px 14px',borderBottom:'1px solid var(--hairline)',display:'flex',alignItems:'center',gap:9}},
+        h('img',{src:'assets/mono-indigo.png',alt:'MND',style:{width:22,height:22,objectFit:'contain',flexShrink:0}}),
+        h('div',null,
+          h('div',{style:{fontWeight:700,fontSize:10,letterSpacing:'.36em',color:'var(--color-indigo)',lineHeight:1}},'MND'),
+          h('div',{style:{fontSize:7.5,letterSpacing:'.22em',color:'var(--obsidian-300)',marginTop:3}},'LE PLAN'))),
+      h('nav',{style:{flex:1,padding:'10px 10px',display:'flex',flexDirection:'column',gap:1,overflowY:'auto'}},
         tabs.map(([id,label])=>{ const on=s.tab===id;
           return h('button',{key:id,onClick:()=>this.go(id,id==='tasks'?{}:{fproject:null}),
-            style:{width:'100%',display:'flex',alignItems:'center',gap:11,padding:'10px 14px',cursor:'pointer',border:'none',borderRadius:'var(--radius-sm)',
+            style:{width:'100%',display:'flex',alignItems:'center',gap:9,padding:'8px 10px',cursor:'pointer',border:'none',borderRadius:6,textAlign:'left',
               background:on?'var(--color-indigo)':'transparent',color:on?'var(--color-ivoire)':'var(--obsidian-500)',
-              fontFamily:'var(--font-sans)',fontSize:13,fontWeight:on?600:400,letterSpacing:'.02em'}},
-            this.icon(id,on), label); })),
-      h('div',{style:{padding:'14px 16px',borderTop:'1px solid var(--hairline)',display:'flex',alignItems:'center',gap:10}},
-        u?h('div',{style:{width:30,height:30,borderRadius:'50%',background:u.color||'var(--copper-500)',color:'#F6F1E7',display:'grid',placeItems:'center',fontSize:10,fontWeight:600,flex:'none'}},
+              fontFamily:'var(--font-sans)',fontSize:12.5,fontWeight:on?600:400,letterSpacing:'.01em',transition:'background .12s,color .12s'}},
+            ico(id,on), label); })),
+      h('div',{style:{padding:'10px 12px',borderTop:'1px solid var(--hairline)',display:'flex',alignItems:'center',gap:8}},
+        u?h('div',{style:{width:26,height:26,borderRadius:'50%',background:u.color||'var(--copper-500)',color:'#F6F1E7',display:'grid',placeItems:'center',fontSize:9,fontWeight:700,flex:'none'}},
           u.name.split(' ').map(w=>w[0]).join('').slice(0,2)):null,
         u?h('div',{style:{flex:1,minWidth:0}},
-          h('div',{style:{fontSize:12,fontWeight:500,color:'var(--ink)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},u.name.split(' ')[0]),
-          h('div',{style:{fontSize:10,color:'var(--obsidian-400)'}},'Connecté')):null,
+          h('div',{style:{fontSize:11.5,fontWeight:500,color:'var(--ink)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},u.name.split(' ')[0]),
+          h('div',{style:{fontSize:9.5,color:'var(--obsidian-400)',marginTop:1}},'Connecté')):null,
         h('button',{onClick:()=>u&&(s.tab==='plan'?this.openCreate():this.openAdd()),
           title:s.tab==='plan'?'Nouveau projet':'Nouvelle tâche',
-          style:{width:30,height:30,borderRadius:'50%',background:'var(--accent)',color:'#fff',border:'none',fontSize:20,fontWeight:300,cursor:'pointer',display:'grid',placeItems:'center',flex:'none'}},'+')
+          style:{width:26,height:26,borderRadius:'50%',background:'var(--accent)',color:'#fff',border:'none',fontSize:17,fontWeight:300,lineHeight:1,cursor:'pointer',display:'grid',placeItems:'center',flex:'none'}},'+')
       )
     ); }
 
@@ -212,15 +216,16 @@ class Component extends DCLogic {
     this._byId=this.byId(); this._cm=this.cmap();
     const h=this.h; const s=this.state;
     if(!s.user) return { app: this.loginScreen() };
+    const D=s.desktop; this._D=D;
     const body = s.tab==='plan'?this.plan():s.tab==='tasks'?this.tasks():s.tab==='time'?this.timeline():s.tab==='messages'?this.messages():this.documents();
     const isChat = s.tab==='messages';
-    return { app: h('div',{className:'rp-root'},
-      h('div',{className:'rp-body'},
-        h('div',{className:'rp-sidebar'}, this.sidebarNav()),
-        h('div',{className:'rp-main'},
+    return { app: h('div',{style:{width:'100%',height:D?'100dvh':undefined,minHeight:D?undefined:'100dvh',background:'var(--color-ivoire)',display:'flex',flexDirection:'column',position:'relative',overflow:D?'hidden':undefined}},
+      h('div',{style:{flex:1,minHeight:0,display:'flex',flexDirection:'row',overflow:D?'hidden':undefined}},
+        D?h('div',{style:{width:216,flexShrink:0,height:'100%',borderRight:'1px solid var(--hairline)',background:'var(--color-ivoire)',display:'flex',flexDirection:'column',overflow:'hidden'}}, this.sidebarNav()):null,
+        h('div',{style:{flex:1,minWidth:0,display:'flex',flexDirection:'column',overflow:'hidden',position:'relative'}},
           s.tab==='time'?null:this.motif(0.05),
           h('div',{className:'appscroll',style:{flex:1,minHeight:0,overflowY:isChat?'hidden':'auto',overflowX:'hidden',position:'relative',zIndex:1,display:isChat?'flex':'block',flexDirection:'column'}}, body),
-          this.tabbar()
+          D?null:this.tabbar()
         )
       ),
       s.sheet?this.sheet():null,
@@ -233,14 +238,14 @@ class Component extends DCLogic {
 
   motif(op){ return this.h('div',{'aria-hidden':'true',style:{position:'absolute',inset:0,zIndex:0,pointerEvents:'none',backgroundImage:'url(assets/mono-indigo.png)',backgroundRepeat:'repeat',backgroundSize:'62px 62px',opacity:op}}); }
 
-  topPad(){ return this.h('div',{className:'rp-toppad',style:{height:'max(16px, env(safe-area-inset-top))'}}); }
+  topPad(){ if(this._D) return null; return this.h('div',{style:{height:'max(16px, env(safe-area-inset-top))'}}); }
 
   // ---------- PLAN (home) ----------
   plan(){ const h=this.h; const overall=this.roll('g1'); const leaves=this.leaves(); const done=leaves.filter(l=>(l.progress||0)>=100).length; const projs=this.projects();
     const open=leaves.filter(l=>(l.progress||0)<100); const ahead=open.filter(l=>this.daysTo(l.end)>=0).sort((a,b)=>this.G.dayDiff(b.end,a.end)); const upcoming=ahead[0]||open.sort((a,b)=>this.G.dayDiff(b.end,a.end))[0];
     return h('div',null,
       // hero
-      h('div',{className:'rp-hero',style:{background:'var(--grad-indigo)',color:'var(--color-ivoire)',padding:'58px 22px 26px',borderBottomLeftRadius:26,borderBottomRightRadius:26,position:'relative',overflow:'hidden'}},
+      h('div',{style:{background:'var(--grad-indigo)',color:'var(--color-ivoire)',padding:this._D?'22px 32px 22px':'58px 22px 26px',borderBottomLeftRadius:this._D?0:26,borderBottomRightRadius:this._D?0:26,position:'relative',overflow:'hidden'}},
         h('img',{src:'assets/mono-ivoire.png',alt:'',style:{position:'absolute',top:-26,right:-34,width:210,height:210,opacity:.07,pointerEvents:'none'}}),
         h('div',{style:{display:'flex',alignItems:'center',gap:11,marginBottom:22,position:'relative'}},
           h('img',{src:'assets/mono-ivoire.png',alt:'MND',style:{width:30,height:30,objectFit:'contain'}}),
@@ -270,10 +275,10 @@ class Component extends DCLogic {
       ),
       this.summaryChart(),
       // projects
-      h('div',{className:'rp-proj-label',style:{padding:'22px 18px 8px',display:'flex',alignItems:'baseline',justifyContent:'space-between'}},
+      h('div',{style:{padding:this._D?'18px 28px 8px':'22px 18px 8px',display:'flex',alignItems:'baseline',justifyContent:'space-between'}},
         h('div',{style:{fontSize:10,letterSpacing:'.24em',color:'var(--obsidian-400)'}},'PROJETS'),
         h('div',{style:{fontSize:10,letterSpacing:'.24em',color:'var(--copper-600)'}},projs.length+'')),
-      h('div',{className:'rp-cards',style:{padding:'0 18px 12px',display:'flex',flexDirection:'column',gap:12}}, projs.map(p=>this.projCard(p))),
+      h('div',{style:this._D?{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,padding:'0 28px 12px'}:{display:'flex',flexDirection:'column',gap:12,padding:'0 18px 12px'}}, projs.map(p=>this.projCard(p))),
       this.memberSummary()
     ); }
 
@@ -307,7 +312,7 @@ class Component extends DCLogic {
     const areaR=lineR+' L'+xs(n-1).toFixed(1)+','+(H-PB)+' L0,'+(H-PB)+' Z';
     const realNow=this.roll('g1').progress; let pn=0; leaves.forEach(l=>{ if(this.daysTo(l.end)<=0){ pn+=G.dayDiff(l.start,l.end)+1; } }); const plannedNow=Math.round(pn/total*100);
     const delta=realNow-plannedNow; const onTrack=delta>=-2;
-    return h('div',{className:'rp-chart-pad',style:{padding:'18px 18px 4px'}},
+    return h('div',{style:{padding:this._D?'16px 28px 4px':'18px 18px 4px'}},
       h('div',{style:{background:'#FBF8F1',border:'1px solid var(--hairline)',borderTop:'2px solid var(--accent)',borderRadius:'var(--radius-md)',padding:'15px 15px 12px',boxShadow:'var(--shadow-sm)'}},
         h('div',{style:{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:10}},
           h('div',null, h('div',{style:{fontSize:9.5,letterSpacing:'.2em',textTransform:'uppercase',color:'var(--obsidian-400)'}},'Progression'),
@@ -329,10 +334,10 @@ class Component extends DCLogic {
 
   memberSummary(){ const h=this.h; const owners=Object.values(this.OW()); const byO={}; this.leaves().filter(t=>t.owner).forEach(t=>{ (byO[t.owner]=byO[t.owner]||[]).push(t); });
     return h('div',null,
-      h('div',{className:'rp-team-label',style:{padding:'18px 18px 8px',display:'flex',alignItems:'baseline',justifyContent:'space-between'}},
+      h('div',{style:{padding:this._D?'18px 28px 8px':'18px 18px 8px',display:'flex',alignItems:'baseline',justifyContent:'space-between'}},
         h('div',{style:{fontSize:10,letterSpacing:'.24em',color:'var(--obsidian-400)'}},'ÉQUIPE'),
         h('div',{style:{fontSize:10,letterSpacing:'.24em',color:'var(--copper-600)'}},owners.length+'')),
-      h('div',{className:'rp-members',style:{padding:'0 18px 14px',display:'flex',flexDirection:'column',gap:9}}, owners.map(o=>{ const list=byO[o.id]||[]; const done=list.filter(t=>(t.progress||0)>=100).length;
+      h('div',{style:this._D?{display:'grid',gridTemplateColumns:'1fr 1fr',gap:9,padding:'0 28px 20px'}:{display:'flex',flexDirection:'column',gap:9,padding:'0 18px 14px'}}, owners.map(o=>{ const list=byO[o.id]||[]; const done=list.filter(t=>(t.progress||0)>=100).length;
         const dsum=list.reduce((a,t)=>a+this.G.dayDiff(t.start,t.end)+1,0)||1; const wp=list.reduce((a,t)=>a+(t.progress||0)*(this.G.dayDiff(t.start,t.end)+1),0); const pct=Math.round(wp/dsum);
         return h('div',{key:o.id,style:{display:'flex',alignItems:'center',gap:12,background:'#FBF8F1',border:'1px solid var(--hairline)',borderRadius:'var(--radius-md)',padding:'11px 13px',boxShadow:'var(--shadow-xs)'}},
           this.avatar(o.id,34),
