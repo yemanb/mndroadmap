@@ -33,15 +33,14 @@
 <script src="gantt-data.js"></script>
 <script src="gantt-extras.js"></script>
 <style>
-  html,body{margin:0;height:100%;}
+  html,body{margin:0;height:100%;background:var(--color-ivoire);}
   *{box-sizing:border-box;}
   .appscroll::-webkit-scrollbar{width:0;height:0;display:none;}
   .appscroll{scrollbar-width:none;}
+  #dc-root,#dc-root>div{height:100%;}
 </style>
 </helmet>
-<div style="min-height:100vh;width:100%;display:grid;place-items:center;padding:36px 0;background:radial-gradient(120% 90% at 50% 0%, #20235A 0%, #15173A 55%, #0C0D20 100%);font-family:var(--font-sans);">
-  <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">{{ app }}</x-import>
-</div>
+{{ app }}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;980&quot;}}">
 class Component extends DCLogic {
@@ -170,7 +169,7 @@ class Component extends DCLogic {
     if(!s.user) return { app: this.loginScreen() };
     const body = s.tab==='plan'?this.plan():s.tab==='tasks'?this.tasks():s.tab==='time'?this.timeline():s.tab==='messages'?this.messages():this.documents();
     const isChat = s.tab==='messages';
-    return { app: h('div',{style:{height:'100%',display:'flex',flexDirection:'column',background:'var(--color-ivoire)',position:'relative'}},
+    return { app: h('div',{style:{minHeight:'100dvh',display:'flex',flexDirection:'column',background:'var(--color-ivoire)',position:'relative',maxWidth:480,margin:'0 auto'}},
       s.tab==='time'?null:this.motif(0.05),
       h('div',{className:'appscroll',style:{flex:1,minHeight:0,overflowY: isChat?'hidden':'auto',overflowX:'hidden',position:'relative',zIndex:1,display:isChat?'flex':'block',flexDirection:'column'}}, body),
       this.tabbar(),
@@ -184,7 +183,7 @@ class Component extends DCLogic {
 
   motif(op){ return this.h('div',{'aria-hidden':'true',style:{position:'absolute',inset:0,zIndex:0,pointerEvents:'none',backgroundImage:'url(assets/mono-indigo.png)',backgroundRepeat:'repeat',backgroundSize:'62px 62px',opacity:op}}); }
 
-  topPad(){ return this.h('div',{style:{height:58}}); } // clears status bar / island
+  topPad(){ return this.h('div',{style:{height:'max(16px, env(safe-area-inset-top))'}}); }
 
   // ---------- PLAN (home) ----------
   plan(){ const h=this.h; const overall=this.roll('g1'); const leaves=this.leaves(); const done=leaves.filter(l=>(l.progress||0)>=100).length; const projs=this.projects();
@@ -657,7 +656,7 @@ class Component extends DCLogic {
   // ---------- tab bar ----------
   tabbar(){ const h=this.h; const s=this.state; const tabs=[['plan','Plan'],['tasks','Tâches'],['time','Agenda'],['messages','Messages'],['docs','Docs']];
     const onMessages=s.tab==='messages';
-    return h('div',{style:{flex:'none',position:'relative',paddingBottom:30,paddingTop:8,background:'rgba(251,248,241,.92)',backdropFilter:'blur(14px)',WebkitBackdropFilter:'blur(14px)',borderTop:'1px solid var(--hairline)',zIndex:5}},
+    return h('div',{style:{flex:'none',position:'relative',paddingBottom:'calc(env(safe-area-inset-bottom, 0px) + 8px)',paddingTop:8,background:'rgba(251,248,241,.92)',backdropFilter:'blur(14px)',WebkitBackdropFilter:'blur(14px)',borderTop:'1px solid var(--hairline)',zIndex:5}},
       onMessages?null:h('button',{onClick:()=>{ s.tab==='plan'?this.openCreate():this.openAdd(); },title:s.tab==='plan'?'Nouveau projet':'Nouvelle tâche',style:{position:'absolute',top:-58,right:18,width:52,height:52,borderRadius:'50%',background:'var(--accent)',color:'#fff',border:'2px solid var(--color-ivoire)',boxShadow:'var(--shadow-md)',fontSize:26,fontWeight:300,lineHeight:1,cursor:'pointer',display:'grid',placeItems:'center'}},'+'),
       h('div',{style:{display:'flex'}}, tabs.map(([id,label])=>h('button',{key:id,onClick:()=>this.go(id, id==='tasks'?{}:{fproject:null}),style:{flex:1,background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'4px 0'}},
         this.icon(id,s.tab===id),
